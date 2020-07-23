@@ -49,10 +49,12 @@ public class DifFunction implements Function<APIGatewayProxyRequestEvent, APIGat
 			DistributorEntity distributorEntity = getDistributor(Integer.valueOf(requestParams.get("distributor_id")));
 
 			if (null == distributorEntity) {
+				addCorsHeader(responseEvent);
 				responseEvent.setBody(gson.toJson(distributorModel));
 				responseEvent.setStatusCode(204);
 			} else {
 				BeanUtils.copyProperties(distributorEntity, distributorModel);
+				addCorsHeader(responseEvent);
 				responseEvent.setBody(gson.toJson(distributorModel));
 				responseEvent.setStatusCode(200);
 			}
@@ -63,6 +65,7 @@ public class DifFunction implements Function<APIGatewayProxyRequestEvent, APIGat
 			DistributorEntity distributorEntity = saveDistributor(distributorModel);
 
 			BeanUtils.copyProperties(distributorEntity, distributorModel);
+			addCorsHeader(responseEvent);
 			responseEvent.setBody(gson.toJson(distributorModel));
 			responseEvent.setStatusCode(201);
 			logger.info("Step 2 Finished");
@@ -123,7 +126,8 @@ public class DifFunction implements Function<APIGatewayProxyRequestEvent, APIGat
 			}
 		}
 
-		logger.info("Response Payload : " + requestEvent.getBody());
+		logger.info("Response Header : " + responseEvent.getHeaders());
+		logger.info("Response Payload : " + responseEvent.getBody());
 		return responseEvent;
 	}
 
@@ -180,5 +184,23 @@ public class DifFunction implements Function<APIGatewayProxyRequestEvent, APIGat
 		distributorEntity.setEmployee(employeeEntitySet);
 
 		return distributorEntity;
+	}
+	
+	private void addCorsHeader(APIGatewayProxyResponseEvent responseEvent) {
+		Map<String, String> header = responseEvent.getHeaders();
+		if (null != header) {
+			setCorsHeader(header);
+			responseEvent.setHeaders(header);
+		} else {
+			header = new HashMap<>();
+			setCorsHeader(header);
+			responseEvent.setHeaders(header);
+		}
+	}
+	
+	private void setCorsHeader(Map<String, String> header) {
+		header.put("Access-Control-Allow-Headers", "Content-Type");
+		header.put("Access-Control-Allow-Origin", "*");
+		header.put("Access-Control-Allow-Methods", "OPTIONS,POST,GET");
 	}
 }
