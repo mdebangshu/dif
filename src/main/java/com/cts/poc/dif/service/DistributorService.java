@@ -2,7 +2,6 @@ package com.cts.poc.dif.service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -10,12 +9,9 @@ import javax.transaction.Transactional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.cts.poc.dif.entity.DistributorEntity;
@@ -26,7 +22,7 @@ import com.cts.poc.dif.repository.ProcessSetupRepository;
 @Service
 @Transactional
 public class DistributorService {
-	
+
 	private static Log logger = LogFactory.getLog(DistributorService.class);
 
 	@Autowired
@@ -45,7 +41,13 @@ public class DistributorService {
 	private static final String DRM_URL = "https://4a995b2bv7.execute-api.us-east-2.amazonaws.com/V1/sendconvention";
 
 	public DistributorEntity getDistributor(Integer id) {
+		if (null == id) {
+			return new DistributorEntity();
+		}
 		Optional<DistributorEntity> distributor = distributorRepository.findById(id);
+		if (null == distributor) {
+			return new DistributorEntity();
+		}
 		return distributor.get();
 	}
 
@@ -73,7 +75,8 @@ public class DistributorService {
 		 */
 		RequestEntity<Distributor> re = null;
 		try {
-			re = RequestEntity.post(new URI(DRM_URL)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON).body(distributor);
+			re = RequestEntity.post(new URI(DRM_URL)).accept(MediaType.APPLICATION_JSON)
+					.contentType(MediaType.APPLICATION_JSON).body(distributor);
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

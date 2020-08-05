@@ -69,6 +69,23 @@ public class DifFunction implements Function<APIGatewayProxyRequestEvent, APIGat
 			responseEvent.setBody(gson.toJson(distributorModel));
 			responseEvent.setStatusCode(201);
 			logger.info("Step 2 Finished");
+		} else if ("PUT".equals(requestEvent.getHttpMethod())) {
+			logger.info("Step Azure Started");
+			Distributor distributorModel = gson.fromJson(requestEvent.getBody(), Distributor.class);
+			DistributorEntity distributorEntity = getDistributor(distributorModel.getDistributor_id());
+
+			distributorEntity.getConvention().stream().filter(Objects::nonNull).forEach(convention -> {
+				convention.getProcess().stream().filter(Objects::nonNull).forEach(process -> {
+					process.setStatus("Verified");
+				});
+			});
+			logger.info("Step Azure before saving the DistributorEntity is : " + distributorEntity);
+			DistributorEntity updatedDistributorEntity = distributorService.saveDistributor(distributorEntity);
+
+			BeanUtils.copyProperties(updatedDistributorEntity, distributorModel);
+			responseEvent.setBody(gson.toJson(distributorModel));
+			responseEvent.setStatusCode(200);
+			logger.info("Step Azure Finished");
 		} else if ("PATCH".equals(requestEvent.getHttpMethod())) {
 			logger.info("Step 3 Started");
 			Distributor distributorModel = new Distributor();
